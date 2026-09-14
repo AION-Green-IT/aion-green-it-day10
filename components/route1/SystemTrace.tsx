@@ -313,12 +313,29 @@ export function SystemTrace() {
                 </button>
 
                 <ul className="mt-2.5 space-y-1.5">
-                  {held.map((h) => (
+                  {held.map((h) => {
+                    const correct = h.correctCategory === c.id;
+                    const chipTone = !r1.categoriesChecked
+                      ? "border-line bg-paper"
+                      : correct
+                        ? "border-accent/35 bg-accentSoft"
+                        : "border-danger/35 bg-danger/10";
+                    const badgeTone = !r1.categoriesChecked
+                      ? "bg-ink text-paper"
+                      : correct
+                        ? "bg-accent text-paper"
+                        : "bg-danger text-paper";
+                    return (
                     <li
                       key={h.id}
-                      className="flex items-center gap-1.5 rounded-lg border border-accent/35 bg-accentSoft px-2 py-1.5"
+                      className={clsx("flex items-center gap-1.5 rounded-lg border px-2 py-1.5", chipTone)}
                     >
-                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-micro font-semibold tabular-nums text-paper">
+                      <span
+                        className={clsx(
+                          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-micro font-semibold tabular-nums",
+                          badgeTone,
+                        )}
+                      >
                         {h.n}
                       </span>
                       <span className="min-w-0 flex-1 truncate text-micro font-semibold text-ink">
@@ -334,7 +351,8 @@ export function SystemTrace() {
                         <Close className="h-3.5 w-3.5" />
                       </button>
                     </li>
-                  ))}
+                    );
+                  })}
                   {held.length === 0 && (
                     <li className="rounded-lg border border-dashed border-line px-2 py-2 text-micro text-ash">
                       {armedId ? "Click to place the selected card" : "Drop a card here"}

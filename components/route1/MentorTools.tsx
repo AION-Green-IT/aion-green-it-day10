@@ -18,6 +18,7 @@ export function MentorTools() {
   const setNote = useProgress((s) => s.setNote);
   const choose = useProgress((s) => s.choose);
   const markSeen = useProgress((s) => s.markSeen);
+  const toggleCheck = useProgress((s) => s.toggleCheck);
 
   const fill = () => {
     setNote(R1.name, "Muchson");
@@ -30,6 +31,10 @@ export function MentorTools() {
       choose(R1.fixType(h.id), h.correctFixType);
       setNote(R1.justification(h.id), h.sampleJustification);
     }
+    // Categories are correct by construction above, but the lever/justification/fix-type
+    // fields only render once Check all placements has confirmed them — flip that flag too,
+    // so a mentor-filled run matches what a real completed run looks like.
+    toggleCheck(R1.categoriesChecked, true);
 
     setNote(R1.reflection, TASK1.reflection.sample);
   };

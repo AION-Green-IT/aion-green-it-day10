@@ -33,6 +33,14 @@ export const R1 = {
   justification: (hotspotId: string) => `r1:why:${hotspotId}`,
   fixType: (hotspotId: string) => `r1:fix:${hotspotId}`,
   reflection: "r1:reflection",
+  /**
+   * Set true the first time "Check all placements" is clicked. Deliberately a
+   * single flag, not per-hotspot: once the learner has opted in once, every
+   * hotspot's correct/wrong state (and the lever/justification/fix-type
+   * section it gates) updates live from then on — moving a wrong card to the
+   * right bin unlocks it immediately, with no need to click Check again.
+   */
+  categoriesChecked: "r1:categories-checked",
 } as const;
 
 /** Prefixes resetSection() must sweep to clear every compound key this route writes. */
