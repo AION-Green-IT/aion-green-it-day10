@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import clsx from "clsx";
 import { parseRich, type GlossaryEntry } from "@/lib/glossary";
 import { scrollToAndFlash } from "@/lib/scrollToAndFlash";
 import { ArrowRight, Close, Help, Info } from "@/components/icons/LineIcons";
@@ -86,6 +87,13 @@ export function GlossaryProvider({
     window.setTimeout(() => scrollToAndFlash(anchorId, "ref"), 60);
   };
 
+  /** Swaps the dialog straight to another entry — a timeline breadcrumb click. The dialog
+   * itself never closes; only its content changes, so a multi-part story reads as one
+   * continuous read rather than a close-then-reopen. */
+  const openRelated = (id: string) => {
+    if (entries[id]) setOpenId(id);
+  };
+
   return (
     <GlossaryContext.Provider value={value}>
       <div>
@@ -116,6 +124,7 @@ export function GlossaryProvider({
               visual={renderVisual(entry)}
               onClose={() => setOpenId(null)}
               onJump={jumpTo}
+              onRelated={openRelated}
             />
           )}
         </dialog>
@@ -129,30 +138,61 @@ function GlossaryBody({
   visual,
   onClose,
   onJump,
+  onRelated,
 }: {
   entry: GlossaryEntry;
   visual: ReactNode;
   onClose: () => void;
   onJump: (anchorId: string) => void;
+  onRelated: (id: string) => void;
 }) {
   return (
     // 2px less than the dialog's own limit, for its top and bottom border.
     <div className="reveal-in max-h-[calc(100dvh-18px)] overflow-y-auto">
-      <header className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-line bg-paper/95 px-4 py-3 backdrop-blur sm:px-5 sm:py-4 md:px-6">
-        <div>
-          <p className="text-micro font-semibold uppercase tracking-wide text-accent">{entry.kicker}</p>
-          <h2 id={`gloss-title-${entry.id}`} className="text-h3 text-ink md:text-h2">
-            {entry.question}
-          </h2>
+      <header className="sticky top-0 z-10 border-b border-line bg-paper/95 backdrop-blur">
+        <div className="flex items-start justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4 md:px-6">
+          <div>
+            <p className="text-micro font-semibold uppercase tracking-wide text-accent">{entry.kicker}</p>
+            <h2 id={`gloss-title-${entry.id}`} className="text-h3 text-ink md:text-h2">
+              {entry.question}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close explanation"
+            className="shrink-0 rounded-lg p-1 text-ash transition-colors duration-150 hover:bg-mist hover:text-ink"
+          >
+            <Close className="h-5 w-5" />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close explanation"
-          className="shrink-0 rounded-lg p-1 text-ash transition-colors duration-150 hover:bg-mist hover:text-ink"
-        >
-          <Close className="h-5 w-5" />
-        </button>
+
+        {entry.timeline && (
+          <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5 border-t border-line/70 px-4 py-2 sm:px-5 md:px-6">
+            <span className="mr-1 text-micro font-semibold uppercase tracking-wide text-ash">One story:</span>
+            {entry.timeline.sequence.map((step, i) => {
+              const current = step.id === entry.id;
+              return (
+                <span key={step.id} className="flex items-center gap-1">
+                  {i > 0 && <span className="text-micro text-ash">→</span>}
+                  {current ? (
+                    <span className="rounded-full bg-accent px-2.5 py-0.5 text-micro font-semibold text-paper">
+                      {step.label}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onRelated(step.id)}
+                      className="rounded-full border border-line px-2.5 py-0.5 text-micro font-semibold text-ash transition-colors duration-150 hover:border-accent hover:text-accent"
+                    >
+                      {step.label}
+                    </button>
+                  )}
+                </span>
+              );
+            })}
+          </div>
+        )}
       </header>
 
       <div className="space-y-5 px-4 py-4 sm:px-5 sm:py-5 md:px-6">
@@ -184,6 +224,11 @@ function GlossaryBody({
         {entry.steps && (
           <div>
             <p className="text-h3 text-ink">{entry.steps.heading}</p>
+            {entry.steps.items.some((s) => s.tracks?.length) && (
+              <p className="mt-0.5 text-micro text-ash">
+                Each step is tagged with the question its evidence settles.
+              </p>
+            )}
             <ol className="mt-3 space-y-2">
               {entry.steps.items.map((step, i) => (
                 <li key={i} className="flex gap-3 rounded-xl border border-line bg-paper p-3">
@@ -191,8 +236,21 @@ function GlossaryBody({
                     {i + 1}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-micro font-semibold uppercase tracking-wide text-accent">{step.who}</p>
-                    <p className="mt-0.5 text-caption text-ink">{step.does}</p>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <p className="text-micro font-semibold uppercase tracking-wide text-accent">{step.who}</p>
+                      {step.tracks?.map((t) => (
+                        <span
+                          key={t}
+                          className={clsx(
+                            "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                            t === "Efficient?" ? "bg-accentSoft text-accent" : "bg-mist text-ash",
+                          )}
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-caption text-ink">{step.does}</p>
                     {step.yields && (
                       <p className="mt-1.5 inline-block rounded-lg bg-mist px-2 py-0.5 text-caption font-semibold tabular-nums text-ink">
                         {step.yields}

@@ -15,8 +15,22 @@ export type GlossaryVisualState = {
   caption: string;
 };
 
-/** One hand-off in a worked example: who does what, and the number it produces. */
-export type GlossaryStep = { who: string; does: string; yields?: string };
+/**
+ * One hand-off in a worked example: who does what, and the number it produces.
+ * `tracks` names which of a worked example's questions this step's evidence
+ * answers — e.g. Section B's cards ask "Correct?" and "Efficient?" as two
+ * separate questions, and a step can settle one or both.
+ */
+export type GlossaryStep = { who: string; does: string; yields?: string; tracks?: string[] };
+
+/**
+ * A chain of entries that continue directly from one another — e.g. Section
+ * B's three failure cards, one company's story moving forward in time. Every
+ * entry in the chain repeats the same `sequence`; GlossaryBody renders it as a
+ * breadcrumb and lets a click swap the open dialog straight to the next one,
+ * without closing it.
+ */
+export type GlossaryTimeline = { sequence: { id: string; label: string }[] };
 
 export type GlossaryEntry = {
   id: string;
@@ -38,6 +52,8 @@ export type GlossaryEntry = {
   whyEnergy?: { heading: string; text: string };
   /** Where the material covers this in depth — closes the explainer and scrolls there. */
   seeAlso?: { anchorId: string; label: string };
+  /** This entry's place in a multi-part story — see GlossaryTimeline above. */
+  timeline?: GlossaryTimeline;
 };
 
 export type RichSegment =

@@ -407,15 +407,24 @@ export const CORRECTNESS_GRID: QuadrantCell[] = [
 // — a parcel-tracking page at a logistics company — so the four are directly
 // comparable: same feature, same two questions, different answers.
 // ---------------------------------------------------------------------------
+/** The shared sequence all four Deep examples repeat, so the breadcrumb in each dialog is identical. */
+const QUADRANT_TIMELINE = [
+  { id: "quadrant-ce", label: "The goal" },
+  { id: "quadrant-ci", label: "AppNexa today" },
+  { id: "quadrant-ie", label: "Not acceptable" },
+  { id: "quadrant-ii", label: "Worst case" },
+];
+
 export const QUADRANT_EXAMPLES: Record<string, GlossaryEntry> = {
   "quadrant-ce": {
     id: "quadrant-ce",
     kicker: "Deep example · The goal",
     question: "How does a team actually confirm a feature is Correct + Efficient?",
     plain: [
-      "Take a parcel-tracking page: a customer enters a tracking number and sees the current status. Two separate teams sign off on it before it ships, answering two separate questions with two separate kinds of evidence.",
+      "Take a parcel-tracking page: a customer enters a tracking number and sees the current status. Two separate questions get answered before it ships, each by different people and different evidence — the steps below are tagged Correct? or Efficient?, so you can see which one each finding settles.",
     ],
     visual: { key: "quadrant-example", title: "One feature, two questions, two answers", states: [] },
+    timeline: { sequence: QUADRANT_TIMELINE },
     steps: {
       heading: "Who does what, and what it produces",
       items: [
@@ -423,26 +432,31 @@ export const QUADRANT_EXAMPLES: Record<string, GlossaryEntry> = {
           who: "QA / the customer",
           does: "Runs the automated test suite against known tracking numbers, then real customers use the page for a week.",
           yields: "0 wrong statuses shown, 0 support tickets about incorrect tracking",
+          tracks: ["Correct?"],
         },
         {
           who: "The platform team",
           does: "Reads the page's server logs and measures energy per load using their cloud provider's per-service metering.",
           yields: "E = 0.006 kWh per 1,000 page loads",
+          tracks: ["Efficient?"],
         },
         {
           who: "The sustainability lead",
           does: "Looks up the carbon intensity of the electricity grid the servers run on that day, from the grid operator's published figure.",
           yields: "I = 380 g CO₂e per kWh that day",
+          tracks: ["Efficient?"],
         },
         {
           who: "IT asset management",
           does: "Divides the servers' manufacturing footprint by their expected lifetime, then allocates a share to this page by its share of total traffic.",
           yields: "M ≈ 0.0004 kWh-equivalent per 1,000 loads",
+          tracks: ["Efficient?"],
         },
         {
           who: "The engineering lead",
           does: "Combines E, I and M into one SCI number and compares it against last quarter's release of the same page.",
           yields: "C ≈ 0.9 g CO₂e per page load — 12% lower than last quarter",
+          tracks: ["Efficient?"],
         },
       ],
     },
@@ -465,6 +479,7 @@ export const QUADRANT_EXAMPLES: Record<string, GlossaryEntry> = {
       "Same parcel-tracking page, eighteen months later. It has never returned a wrong status. It has also never been looked at from the efficiency side — until a rising cloud bill forces the question.",
     ],
     visual: { key: "quadrant-example", title: "Working fine, quietly getting more expensive", states: [] },
+    timeline: { sequence: QUADRANT_TIMELINE },
     steps: {
       heading: "Who does what, and what it produces",
       items: [
@@ -472,21 +487,25 @@ export const QUADRANT_EXAMPLES: Record<string, GlossaryEntry> = {
           who: "Finance",
           does: "Notices the monthly cloud invoice for this service has grown 40% over two quarters, with no matching growth in customers.",
           yields: "Cost per 1,000 page loads up from $0.80 to $1.12",
+          tracks: ["Efficient?"],
         },
         {
           who: "The platform team",
           does: "Instruments the page for the first time and finds it re-queries the full shipment history on every refresh, instead of just the latest status.",
           yields: "18 database round-trips per page load, most of them unused",
+          tracks: ["Efficient?"],
         },
         {
           who: "The sustainability lead",
           does: "Runs the same E × I + M calculation as before, now that E is finally being measured.",
           yields: "C ≈ 6.4 g CO₂e per page load — over 7× the efficient version",
+          tracks: ["Efficient?"],
         },
         {
           who: "The engineering lead",
           does: "Confirms the page's correctness has never been in question — the fix is entirely on the efficiency side, and can ship without changing what the customer sees.",
           yields: "Fix scoped: same output, a fraction of the queries",
+          tracks: ["Correct?", "Efficient?"],
         },
       ],
     },
@@ -506,9 +525,10 @@ export const QUADRANT_EXAMPLES: Record<string, GlossaryEntry> = {
     kicker: "Deep example · Not acceptable",
     question: "What does Incorrect + Efficient actually look like in practice?",
     plain: [
-      "Same page again. This time a well-meaning optimisation ships: cache each tracking number's result for six hours to cut database load. It works beautifully — for the wrong reason.",
+      "Same page again — the team's response to the inefficiency found in “AppNexa today”: cache each tracking number's result for six hours, to cut the database load that was driving the cost up. It works beautifully — for the wrong reason.",
     ],
     visual: { key: "quadrant-example", title: "Fast and cheap, and wrong", states: [] },
+    timeline: { sequence: QUADRANT_TIMELINE },
     steps: {
       heading: "Who does what, and what it produces",
       items: [
@@ -516,21 +536,25 @@ export const QUADRANT_EXAMPLES: Record<string, GlossaryEntry> = {
           who: "The platform team",
           does: "Ships the six-hour cache. Database load drops immediately, and the efficiency dashboard turns green the same day.",
           yields: "C down to 0.7 g CO₂e per page load — the best number yet",
+          tracks: ["Efficient?"],
         },
         {
           who: "A customer",
           does: "Refreshes the page an hour after their parcel is marked delivered, and still sees “out for delivery”.",
           yields: "1 confused customer, 1 support ticket",
+          tracks: ["Correct?"],
         },
         {
           who: "Support",
           does: "Escalates a pattern: every ticket this week involves a status that changed less than six hours ago.",
           yields: "14 tickets in 5 days, all the same root cause",
+          tracks: ["Correct?"],
         },
         {
           who: "QA",
           does: "Reproduces it in an hour: the cache serves the same answer regardless of what actually changed underneath it.",
           yields: "Confirmed: correctness regression, not a support fluke",
+          tracks: ["Correct?"],
         },
       ],
     },
@@ -550,9 +574,10 @@ export const QUADRANT_EXAMPLES: Record<string, GlossaryEntry> = {
     kicker: "Deep example · Worst case",
     question: "How does a system end up Incorrect + Inefficient at the same time?",
     plain: [
-      "The rarest quadrant, and the one that takes the longest to reach — because it usually means two separate failures landed on top of each other, unnoticed, at different times.",
+      "The rarest quadrant, and the one that takes the longest to reach: the correctness bug from “Not acceptable” gets fixed, but the inefficiency from “AppNexa today” was never actually dealt with — two separate failures landing on top of each other, unnoticed, at different times.",
     ],
     visual: { key: "quadrant-example", title: "Two failures, stacked", states: [] },
+    timeline: { sequence: QUADRANT_TIMELINE },
     steps: {
       heading: "Who does what, and what it produces",
       items: [
@@ -560,21 +585,25 @@ export const QUADRANT_EXAMPLES: Record<string, GlossaryEntry> = {
           who: "The platform team",
           does: "Ships a fix for last quarter's cache bug — but forgets to remove the now-redundant full-history re-query underneath it.",
           yields: "The correctness bug is gone, and the N+1 pattern is left in place",
+          tracks: ["Correct?", "Efficient?"],
         },
         {
           who: "A customer",
           does: "Hits a rare edge case: a parcel with two delivery attempts, which the un-reviewed fix handles by showing the older attempt.",
           yields: "1 wrong status shown, in a case nobody tested",
+          tracks: ["Correct?"],
         },
         {
           who: "The sustainability lead",
           does: "Runs the routine quarterly efficiency check and finds the query count never actually improved.",
           yields: "C ≈ 6.1 g CO₂e per page load — still roughly 7× the efficient baseline",
+          tracks: ["Efficient?"],
         },
         {
           who: "The engineering lead",
           does: "Reviews both findings together and realises they were never connected: two different bugs, from two different quarters, sitting in the same file.",
           yields: "Two tickets opened, one root-cause review scheduled",
+          tracks: ["Correct?", "Efficient?"],
         },
       ],
     },
