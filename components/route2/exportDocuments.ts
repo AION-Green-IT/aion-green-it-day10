@@ -31,6 +31,7 @@ export function buildMemoJson(r2: Route2State, filename: string): string {
         name: d.name,
         predicted: s.prediction[d.key] ?? null,
         actual: s.option.profile[d.key],
+        actualWhy: s.option.dimensionWhy[d.key],
         gap: s.prediction[d.key] ? s.option.profile[d.key] - s.prediction[d.key]! : null,
         higherIsWorse: !!d.inverted,
       })),

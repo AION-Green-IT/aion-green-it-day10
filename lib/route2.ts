@@ -170,7 +170,7 @@ export const MATERIAL: MaterialSection[] = [
     kicker: "D · The seven axes you will score on",
     title: "Judging Trade-offs With Real Dimensions",
     definition:
-      "Task 2 asks you to predict each option's profile across seven dimensions before seeing the real one. Those dimensions are not arbitrary labels — each names a distinct question a senior consultant has to answer in front of people who control budget, and each can pull against the others. Read them as questions, not as scores.",
+      "Task 2 asks you to predict each option's profile across seven dimensions before seeing the real one. Those dimensions are not arbitrary labels — each names a distinct question a senior consultant has to answer in front of people who control budget, and each can pull against the others. Read them as questions, not as scores. The profiles themselves are a designed teaching case, not a measurement of a real company — built so that no option dominates and every number holds up on its own terms, the way a business-school case is constructed rather than measured. That is why each dimension carries the specific reason behind its number when you reveal it: a score here is something to argue with, not something to take on faith.",
     insight:
       "Strategic Leverage asks whether this creates a foundation other future decisions can build on, or only solves today's instance of today's problem. Impact on Efficiency asks how directly and how soon this moves AppNexa's real resource consumption, as against how much it merely prepares the ground for a future move. Feasibility asks whether, given limited developer capacity and competing roadmap pressure, this can realistically be executed this quarter without quietly failing. Team Acceptance asks whether engineers will experience it as a meaningful, well-supported change or as an unfunded mandate competing with what they are already measured on — the same Management Logic tension from Route 1, where a guideline that does not change what sprint reviews reward loses to the metric that is actually being watched. Measurability asks whether, after the quarter ends, you can show whether this worked with a number rather than a feeling. Long-term Effect asks whether solving it now prevents the same class of problem recurring, or fixes one instance while the underlying cause stays in place. And Risk covers two different things at once: execution risk, meaning touching live systems and breaking something, and inaction risk, meaning spending a quarter with nothing visible to show while the cost keeps accumulating.",
     takeaway:
@@ -375,6 +375,12 @@ export type MeasureOption = {
   detail: string;
   /** Ground truth, 1–5 per dimension. */
   profile: Record<DimensionKey, number>;
+  /**
+   * The specific reason each number is what it is, not one point higher or
+   * lower — shown per dimension at reveal, so the ground truth is something a
+   * learner can argue with on its own terms rather than take on faith.
+   */
+  dimensionWhy: Record<DimensionKey, string>;
   /** What the profile is saying, once revealed. */
   readout: string;
   riskKind: string;
@@ -404,6 +410,21 @@ export const OPTIONS: MeasureOption[] = [
       measurability: 2,
       longterm: 5,
       risk: 2,
+    },
+    dimensionWhy: {
+      leverage:
+        "Sets the default for every line of code written from now on — every future decision inherits this standard automatically. Nothing scores higher than changing the default itself.",
+      efficiency:
+        "Only governs work not yet started. Nothing already running gets faster or cheaper this quarter, which is why it sits near the bottom rather than at 1 — it isn't zero, because review starts catching new offenders immediately.",
+      feasibility:
+        "Cheap to author — a first draft is days of work — but adoption depends on developers actually following a rule with no enforcement mechanism yet. That gap keeps it at a middling 3, not higher.",
+      acceptance:
+        "A rule with no change to what sprint reviews reward competes with an incentive nobody has touched — Section A's split-incentive problem, restated as a scoring dimension.",
+      measurability:
+        "There's no number to point to until enough new code has shipped under the rule to compare against the old baseline — that takes months, not a quarter. Not a 1, because a compliance rate can be tracked immediately.",
+      longterm:
+        "Addresses the cause, not an instance: every future feature is built under the standard, not just the ones fixed this quarter. This is the same reasoning as Leverage, from a different angle — which is why the two scores match.",
+      risk: "The main risk is paper-policy risk — the guideline exists, gets nodded at in a review, and nothing changes. Real, but quiet: nothing breaks, which keeps the score low rather than at 1.",
     },
     readout:
       "The strongest leverage and long-term profile of the three, and the weakest on immediate impact and team acceptance. This is what a Requirements-stage measure looks like: it changes the default for everything written from now on, and shows almost nothing this quarter.",
@@ -468,6 +489,21 @@ export const OPTIONS: MeasureOption[] = [
       longterm: 2,
       risk: 4,
     },
+    dimensionWhy: {
+      leverage:
+        "Fixes three specific applications. Nothing about the fix changes what produces the next inefficient one — the small non-zero score is for the pattern the team learns doing the work, not for anything structural it leaves behind.",
+      efficiency:
+        "Directly rewrites the code doing the wasteful work — the only option that moves this quarter's actual resource consumption. Nothing scores higher than a real, measured before-and-after on live traffic.",
+      feasibility:
+        "The work itself is well-understood engineering, but it competes directly with committed roadmap capacity — that competition, not the coding difficulty, is what holds this at a middling 3.",
+      acceptance:
+        "Engineers generally like fixing known-broken things — but it's still unplanned work landing on top of what they're already measured on shipping, which caps it below a clear majority-positive score.",
+      measurability:
+        "Before-and-after numbers on the same three systems are about as clean a comparison as a single quarter can produce. Short of Option C's 5 only because it measures three systems, not the whole portfolio.",
+      longterm:
+        "Solves the instance, not the cause. A fourth expensive application can appear next quarter with nothing in place to catch it — this is the mirror image of its Efficiency score, and the two are deliberately far apart.",
+      risk: "Live customer systems, under active use, being rewritten under time pressure — real execution risk, not a hypothetical one. The highest risk score of the three for exactly that reason.",
+    },
     readout:
       "The only option that moves the number materially this quarter, and the one that carries real execution risk. Notice how low it sits on leverage and long-term effect — it solves today's three worst instances without changing what produces them.",
     riskKind: "Execution risk — live systems, real customers, real breakage",
@@ -530,6 +566,21 @@ export const OPTIONS: MeasureOption[] = [
       measurability: 5,
       longterm: 4,
       risk: 2,
+    },
+    dimensionWhy: {
+      leverage:
+        "Doesn't fix anything itself, but makes every future fix — a guideline's rule or a rework's target list — a decision based on evidence instead of a guess. Just short of a guideline's 5 because it enables leverage rather than setting the standard directly.",
+      efficiency:
+        "Changes no code and no infrastructure — by design, this is the one dimension it was never meant to move. The lowest possible honest score, not a flaw in the option.",
+      feasibility:
+        "No live system is touched. Instrumentation runs alongside the roadmap instead of inside it, which is about as deliverable as a measure can be within one quarter — the highest score on the chart.",
+      acceptance:
+        "Doesn't compete with anyone's sprint for capacity — but doesn't visibly help them either, which is a milder version of the same incentive problem a guideline has, just without the friction of a new rule to follow.",
+      measurability:
+        "Its entire output is a number. This is the one option whose success or failure is inherently measurable, which is exactly why it scores at the top.",
+      longterm:
+        "Prevents the class of problem — 'we don't know where to look' — from recurring, without itself fixing what it finds. Scores below a guideline's 5 because it enables the fix rather than being one.",
+      risk: "The risk here isn't execution, it's optics: a quarter that ends with a dashboard and nothing shipped is easy to misread as wasted. Real, but nothing breaks — the same low-risk territory as a guideline, for a different reason.",
     },
     readout:
       "The most deliverable option and the one that produces the best evidence — with the lowest immediate impact on the chart, by construction. It is the only option that makes the next decision an informed one rather than another guess.",

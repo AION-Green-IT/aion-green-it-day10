@@ -216,32 +216,38 @@ export function OptionCard({ state }: { state: OptionState }) {
                     Risk here means: {o.riskKind}
                   </p>
 
-                  <dl className="mt-3 space-y-1 border-t border-accent/25 pt-2">
+                  <p className="mt-3 border-t border-accent/25 pt-2 text-micro font-semibold uppercase tracking-wide text-ash">
+                    Why each number is what it is
+                  </p>
+                  <dl className="mt-1.5 space-y-2.5">
                     {DIMENSIONS.map((d) => {
                       const real = o.profile[d.key];
                       const guess = state.prediction[d.key];
                       const gap = guess ? real - guess : null;
                       return (
-                        <div key={d.key} className="flex items-baseline gap-2 text-micro">
-                          <dt className="flex-1 text-ash">{d.name}</dt>
-                          <dd className="font-semibold tabular-nums text-ink">{real}</dd>
-                          <dd
-                            className={clsx(
-                              "w-14 shrink-0 text-right tabular-nums",
-                              gap === null
-                                ? "text-ash"
-                                : gap === 0
-                                  ? "text-accent"
-                                  : "text-warn",
-                            )}
-                          >
-                            {gap === null ? "—" : gap === 0 ? "exact" : `${gap > 0 ? "+" : ""}${gap}`}
-                          </dd>
+                        <div key={d.key} className="text-micro">
+                          <div className="flex items-baseline gap-2">
+                            <dt className="flex-1 font-semibold text-ink">{d.name}</dt>
+                            <dd className="font-semibold tabular-nums text-ink">{real}</dd>
+                            <dd
+                              className={clsx(
+                                "w-14 shrink-0 text-right tabular-nums",
+                                gap === null
+                                  ? "text-ash"
+                                  : gap === 0
+                                    ? "text-accent"
+                                    : "text-warn",
+                              )}
+                            >
+                              {gap === null ? "—" : gap === 0 ? "exact" : `${gap > 0 ? "+" : ""}${gap}`}
+                            </dd>
+                          </div>
+                          <dd className="mt-0.5 text-ash">{o.dimensionWhy[d.key]}</dd>
                         </div>
                       );
                     })}
                   </dl>
-                  <p className="mt-1.5 text-micro text-ash">
+                  <p className="mt-2 text-micro text-ash">
                     Right column: how far the real value sits from your guess.
                   </p>
                 </div>
