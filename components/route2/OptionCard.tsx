@@ -15,10 +15,12 @@ import { domId, type OptionState } from "./useRoute2";
  * One option's full flow: situational question, seven prediction sliders, then
  * the reveal that overlays the real profile on the learner's guess.
  *
- * Nothing here is a hard lock. The reveal is gated on the situational question
- * only — that is a sequencing nudge inside one option, and clicking it early
- * points at the question rather than doing nothing (CLAUDE.md #3). Options can
- * be worked in any order and revisited freely.
+ * The reveal is gated on both being done — the situational question answered
+ * AND all seven predictions set — so the comparison it draws is always a real
+ * one. Clicking Reveal early never no-ops (CLAUDE.md #3): it scrolls to
+ * whichever of the two is still missing. Options themselves stay unordered —
+ * any of the three can be worked in any order and revisited freely; only the
+ * reveal-then-commit sequence inside and across them is gated.
  */
 export function OptionCard({ state }: { state: OptionState }) {
   const o = state.option;
@@ -28,6 +30,10 @@ export function OptionCard({ state }: { state: OptionState }) {
   const reveal = () => {
     if (!state.situational) {
       scrollToAndFlash(domId.situational(o.id));
+      return;
+    }
+    if (!state.predictionComplete) {
+      scrollToAndFlash(domId.predict(o.id));
       return;
     }
     markSeen(R2.revealed, o.id);
@@ -172,7 +178,7 @@ export function OptionCard({ state }: { state: OptionState }) {
                 {state.situational
                   ? state.predictionComplete
                     ? "Ready — reveal the real profile and see where your prediction differs."
-                    : "You can reveal now, but the dashed comparison polygon only draws once all seven sliders are set."
+                    : `Set the remaining ${state.missingDimensions.length} prediction slider${state.missingDimensions.length === 1 ? "" : "s"} above to unlock the reveal.`
                   : "Answer the situational question above to unlock the reveal."}
               </p>
               <button type="button" onClick={reveal} className="btn-accent mt-3">

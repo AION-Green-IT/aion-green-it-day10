@@ -17,19 +17,28 @@ import { QuadrantMap } from "@/components/ui/QuadrantMap";
 import { ClueToggle } from "@/components/ui/ClueToggle";
 import { AnswerKey } from "@/components/ui/AnswerKey";
 import { MaterialRefs } from "@/components/ui/MaterialRefs";
+import { GatedSection } from "@/components/ui/GatedSection";
 import { Check as CheckGlyph, Redo, Undo } from "@/components/icons/LineIcons";
 import { useRoute3, useQuadrantHistory, domId, type QuadrantPlacements } from "./useRoute3";
 
 /**
  * Step 2 — the trade-off quadrant map.
  *
- * Check is on demand and clue-only (CLAUDE.md #4): it says how many placements
+ * Locked until Step 1 (rank + rationale) is complete — a deliberate deviation
+ * from CLAUDE.md #3/#6's default, scoped to this task (see Route 1's category
+ * gate for the same pattern and its rationale).
+ *
+ * The check itself stays clue-only (CLAUDE.md #4): it says how many placements
  * are off and offers a directional hint per misplaced card, never the correct
- * square. Undo/redo run through the shared placement-history utility.
+ * square. `quadrantChecked` is a single persisted flag, not per-card — once
+ * clicked the first time, every card's correct/wrong state (and whether Step 3
+ * unlocks) updates live as placements change, with no need to click again.
+ * Undo/redo run through the shared placement-history utility.
  */
 export function QuadrantStep() {
   const r3 = useRoute3();
   const choose = useProgress((s) => s.choose);
+  const toggleCheck = useProgress((s) => s.toggleCheck);
 
   const record = useQuadrantHistory((s) => s.recordChange);
   const undo = useQuadrantHistory((s) => s.undo);
@@ -37,7 +46,6 @@ export function QuadrantStep() {
   const canUndo = useQuadrantHistory((s) => s.past.length > 0);
   const canRedo = useQuadrantHistory((s) => s.future.length > 0);
 
-  const [checked, setChecked] = useState(false);
   const [noop, setNoop] = useState<"undo" | "redo" | null>(null);
   const noopTimer = useRef<number | null>(null);
 
@@ -54,17 +62,31 @@ export function QuadrantStep() {
   const place = (cardId: string, cellId: string) => {
     record(r3.placements as Record<string, string | null>);
     choose(R3.quadrant(cardId), cellId);
-    setChecked(false);
   };
 
   const remove = (cardId: string) => {
     record(r3.placements as Record<string, string | null>);
     choose(R3.quadrant(cardId), "");
-    setChecked(false);
   };
 
   const wrong = r3.placedCards.filter((c) => r3.placements[c.id] !== c.correct);
   const allPlaced = r3.unplacedCards.length === 0;
+  const checked = r3.quadrantChecked;
+
+  if (!r3.rankComplete) {
+    return (
+      <>
+        <GatedSection
+          id={domId.quadrant}
+          title="Step 2 locked — finish ranking first"
+          message="Rank your top 3 guiding decisions and write a rationale for #1 above, then the trade-off map unlocks."
+          jump={{ anchorId: domId.rank, label: "Go rank the guiding decisions" }}
+        />
+        {/* Mentor answer key stays available regardless of the learner-facing lock. */}
+        <AnswerKey block={QUADRANT_ANSWER_KEY} />
+      </>
+    );
+  }
 
   return (
     <section id={domId.quadrant} className="scroll-mt-24 rounded-2xl border border-line bg-paper p-5">
@@ -83,7 +105,6 @@ export function QuadrantStep() {
               const prev = undo(r3.placements as Record<string, string | null>);
               if (prev) {
                 apply(prev);
-                setChecked(false);
               } else flashNoop("undo");
             }}
             className={clsx(
@@ -100,7 +121,6 @@ export function QuadrantStep() {
               const next = redo(r3.placements as Record<string, string | null>);
               if (next) {
                 apply(next);
-                setChecked(false);
               } else flashNoop("redo");
             }}
             className={clsx(
@@ -145,7 +165,7 @@ export function QuadrantStep() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={() => setChecked(true)}
+            onClick={() => toggleCheck(R3.quadrantChecked, true)}
             className="btn-ghost !py-1.5 !text-caption"
           >
             {checked ? "Re-check placements" : "Check placements"}

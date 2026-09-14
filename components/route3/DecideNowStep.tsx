@@ -4,13 +4,36 @@ import { useProgress } from "@/lib/store";
 import { R3, TASK3, materialRefs } from "@/lib/route3";
 import { MaterialRefs } from "@/components/ui/MaterialRefs";
 import { AnswerKeyNote } from "@/components/ui/AnswerKey";
+import { GatedSection } from "@/components/ui/GatedSection";
 import { useRoute3, domId } from "./useRoute3";
 
-/** Step 4 — the two fields that make the memo a recommendation rather than a status report. */
+/**
+ * Step 4 — the two fields that make the memo a recommendation rather than a
+ * status report. Locked until Step 3's RACI model holds — same deliberate
+ * deviation from CLAUDE.md #3/#6 as the two gates before it.
+ */
 export function DecideNowStep() {
   const r3 = useRoute3();
   const setNote = useProgress((s) => s.setNote);
   const d = TASK3.decideNow;
+
+  if (!r3.raciConfirmed) {
+    return (
+      <>
+        <GatedSection
+          id={domId.decideNow}
+          title="Step 4 locked — confirm the RACI model first"
+          message="Check the governance model above and make sure exactly one role is Accountable, then this unlocks."
+          jump={{ anchorId: domId.raci, label: "Go check the RACI model" }}
+        />
+        {/* Mentor answer key stays available regardless of the learner-facing lock. */}
+        <AnswerKeyNote
+          label="What a strong decide-now answer does"
+          text="The first field should name something specific and datable — a capacity commitment, a standard adopted by a date, a metric published — not an intention like 'we will prioritise efficiency'. The second should price the delay: what accumulates while you wait, or what gets decided by default in the absence of a decision. A learner who writes 'we might choose wrong' has not answered it; the question is why choosing wrong now beats choosing right later, and at CodeVista the answer is that every quarter of waiting adds more releases built under quality standards that never mention efficiency."
+        />
+      </>
+    );
+  }
 
   return (
     <section className="rounded-2xl border border-line bg-paper p-5">

@@ -5,20 +5,50 @@ import { useProgress } from "@/lib/store";
 import { OPTIONS, R2, TASK2, materialRefs } from "@/lib/route2";
 import { MaterialRefs } from "@/components/ui/MaterialRefs";
 import { AnswerKeyNote } from "@/components/ui/AnswerKey";
-import { scrollToAndFlash } from "@/lib/scrollToAndFlash";
+import { GatedSection } from "@/components/ui/GatedSection";
 import { useRoute2, domId } from "./useRoute2";
 
 /**
- * The commit step. Opens for real once all three profiles have been revealed —
- * but it is never hidden: an unrevealed state shows a soft prompt that points
- * at the first option still to reveal, so nothing is blocked and the learner
- * always knows what would open it.
+ * The commit step. Deliberately gated behind all three profiles being
+ * revealed — a deviation from CLAUDE.md #3/#6's default "never hard-lock the
+ * next step", scoped to this task: committing to a recommendation before
+ * seeing what any option actually costs would make the exercise (defend a
+ * choice against real trade-offs) impossible to do honestly. Before that,
+ * this renders as a locked placeholder with a link to the option still
+ * needing a reveal — never a step that silently does nothing.
  */
 export function CommitStep() {
   const r2 = useRoute2();
   const choose = useProgress((s) => s.choose);
   const setNote = useProgress((s) => s.setNote);
   const c = TASK2.commit;
+
+  if (!r2.allRevealed) {
+    const next = r2.optionStates.find((s) => !s.revealed);
+    return (
+      <>
+        <GatedSection
+          id={domId.commit}
+          title="Step 4 locked — reveal every profile first"
+          message={
+            <>
+              You&apos;ve revealed {r2.revealedCount} of {r2.totalOptions} real profiles. Committing to a
+              recommendation before seeing what each option actually costs would mean defending a choice you
+              haven&apos;t really compared — see all three, then this unlocks.
+            </>
+          }
+          jump={
+            next ? { anchorId: domId.reveal(next.option.id), label: `Go reveal Option ${next.option.id}` } : undefined
+          }
+        />
+        {/* Mentor answer key stays available regardless of the learner-facing lock. */}
+        <AnswerKeyNote
+          label="What a complete memo does"
+          text="There is no correct letter — all three options are defensible and the ground-truth profiles are built so none dominates. Judge a submission on three things: does the rationale name the real trade-off in the option's own terms (not a generality), does it name a specific next decision with an owner and rough timing, and do the two risks describe what the rejected options would have prevented rather than restating the chosen option's own weaknesses. A learner who picks the 'weakest' option and does all three has written the better memo."
+        />
+      </>
+    );
+  }
 
   return (
     <section id={domId.commit} className="scroll-mt-24 rounded-2xl border border-line bg-paper p-5">
@@ -31,25 +61,6 @@ export function CommitStep() {
         the next decision it forces, and name what could go wrong.
       </p>
       <MaterialRefs refs={materialRefs(["defensible", "constraint"])} />
-
-      {!r2.allRevealed && (
-        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-warn/40 bg-warn/5 p-3">
-          <p className="flex-1 text-caption text-ink">
-            Recommended: reveal all three profiles before committing — you have seen {r2.revealedCount} of{" "}
-            {r2.totalOptions}. You can still fill this in now.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              const next = r2.optionStates.find((s) => !s.revealed);
-              if (next) scrollToAndFlash(domId.reveal(next.option.id), "ref");
-            }}
-            className="rounded-full border border-warn/50 px-3 py-1 text-micro font-semibold text-warn hover:bg-warn/10"
-          >
-            Go to the next one
-          </button>
-        </div>
-      )}
 
       {/* --- Pick --- */}
       <div id={domId.pick} className="mt-5 scroll-mt-24">

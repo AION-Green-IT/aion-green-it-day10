@@ -40,6 +40,12 @@ export function MentorTools() {
     toggleCheck(R3.raci("pm", "C"), true);
     toggleCheck(R3.raci("auditor", "I"), true);
 
+    // Steps 2 and 3 are correct/valid by construction above, but Steps 3 and 4
+    // stay locked until each is actually checked once — flip both flags too, so
+    // a mentor-filled run unlocks fully, matching a real completed one.
+    toggleCheck(R3.quadrantChecked, true);
+    toggleCheck(R3.raciChecked, true);
+
     // Step 4.
     setNote(R3.decideNow, TASK3.decideNow.now.sample);
     setNote(R3.decideWhy, TASK3.decideNow.why.sample);

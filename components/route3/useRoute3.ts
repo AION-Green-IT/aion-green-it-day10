@@ -31,7 +31,7 @@ export const domId = {
   quadrantCell: (cellId: string) => `r3-quadrant-${cellId}`,
   raci: "r3-raci",
   raciLetter: (letter: RaciLetter) => `r3-raci-${letter}`,
-  decideNow: "r3-decide-now",
+  decideNow: "r3-decide",
   decideWhy: "r3-decide-why",
   export: "r3-export",
 };
@@ -53,6 +53,10 @@ export function useRoute3() {
     .map((id) => GUIDING_DECISIONS.find((d) => d.id === id))
     .filter((d): d is (typeof GUIDING_DECISIONS)[number] => !!d);
   const rankRationale = (notes[R3.rankRationale] ?? "").trim();
+  // No ranking is "correct" (several are defensible), so Step 1 gates the next
+  // step on being complete, not on being right — the same idea as Route 1's
+  // gate, applied to the one kind of confirmation this step actually has.
+  const rankComplete = rankedDecisions.length === RANK_SLOTS && rankRationale.length > 0;
 
   // --- Step 2: quadrant map ------------------------------------------------
   const placements: QuadrantPlacements = {};
@@ -62,6 +66,11 @@ export function useRoute3() {
   }
   const placedCards = QUADRANT_CARDS.filter((c) => placements[c.id]);
   const unplacedCards = QUADRANT_CARDS.filter((c) => !placements[c.id]);
+  const quadrantChecked = !!checks[R3.quadrantChecked];
+  const quadrantAllCorrect =
+    placedCards.length === QUADRANT_CARDS.length && placedCards.every((c) => placements[c.id] === c.correct);
+  /** Gates Step 3: every card placed, checked at least once, and every one correct. */
+  const quadrantConfirmed = quadrantChecked && quadrantAllCorrect;
 
   // --- Step 3: RACI --------------------------------------------------------
   const raci: Record<RaciLetter, string[]> = { R: [], A: [], C: [], I: [] };
@@ -75,16 +84,26 @@ export function useRoute3() {
   const accountableValid = accountableCount === 1;
   const raciTouched = RACI_LETTERS.some((l) => raci[l.id].length > 0);
   const emptyLetters = RACI_LETTERS.filter((l) => raci[l.id].length === 0);
+  const raciChecked = !!checks[R3.raciChecked];
+  /** Gates Step 4: checked at least once and the one-Accountable rule holds. */
+  const raciConfirmed = raciChecked && accountableValid;
 
   // --- Step 4: decide now --------------------------------------------------
   const decideNow = (notes[R3.decideNow] ?? "").trim();
   const decideWhy = (notes[R3.decideWhy] ?? "").trim();
 
-  /** Standard #1: one named entry per concretely-missing thing. */
+  /**
+   * Standard #1: one named entry per concretely-missing thing. While a later
+   * step is locked, one combined entry stands in for everything inside it —
+   * pointing at the step that unlocks it — rather than listing fields the
+   * learner cannot even see yet.
+   */
   const missing: MissingItem[] = [];
   if (!name.trim()) {
     missing.push({ id: domId.name, label: "Your name — needed to label the export" });
   }
+
+  // Step 1 — always reachable, so its own fields are always checked directly.
   if (rankedDecisions.length < RANK_SLOTS) {
     const n = RANK_SLOTS - rankedDecisions.length;
     missing.push({
@@ -95,29 +114,44 @@ export function useRoute3() {
   if (!rankRationale) {
     missing.push({ id: domId.rankRationale, label: "Rationale for your #1-ranked decision" });
   }
-  for (const c of unplacedCards) {
+
+  // Step 2 — locked until Step 1 is complete.
+  if (!rankComplete) {
+    missing.push({
+      id: domId.rank,
+      label: "Finish ranking above to unlock the trade-off map",
+    });
+  } else if (!quadrantConfirmed) {
     missing.push({
       id: domId.quadrant,
-      label: `Place "${c.short}" on the trade-off map`,
+      label: "Confirm all five measures are placed correctly — use Check placements",
     });
   }
-  for (const l of emptyLetters) {
+
+  // Step 3 — locked until Step 2 is confirmed correct.
+  if (quadrantConfirmed && !raciConfirmed) {
     missing.push({
-      id: domId.raciLetter(l.id),
-      label: `RACI assignment for ${l.name} — no role assigned`,
+      id: domId.raci,
+      label: "Confirm the RACI model holds — exactly one Accountable — use Check the model",
     });
   }
-  if (raciTouched && !accountableValid && !emptyLetters.some((l) => l.id === "A")) {
-    missing.push({
-      id: domId.raciLetter("A"),
-      label: `Accountable must sit with exactly one role — ${accountableCount} are marked`,
-    });
+  if (raciConfirmed) {
+    for (const l of emptyLetters) {
+      missing.push({
+        id: domId.raciLetter(l.id),
+        label: `RACI assignment for ${l.name} — no role assigned`,
+      });
+    }
   }
-  if (!decideNow) {
-    missing.push({ id: domId.decideNow, label: "The decision you must make now, despite incomplete data" });
-  }
-  if (!decideWhy) {
-    missing.push({ id: domId.decideWhy, label: "Why waiting for better data would cost more" });
+
+  // Step 4 — locked until Step 3 is confirmed valid.
+  if (raciConfirmed) {
+    if (!decideNow) {
+      missing.push({ id: domId.decideNow, label: "The decision you must make now, despite incomplete data" });
+    }
+    if (!decideWhy) {
+      missing.push({ id: domId.decideWhy, label: "Why waiting for better data would cost more" });
+    }
   }
 
   return {
@@ -126,14 +160,20 @@ export function useRoute3() {
     ranking,
     rankedDecisions,
     rankRationale,
+    rankComplete,
     placements,
     placedCards,
     unplacedCards,
     totalCards: QUADRANT_CARDS.length,
+    quadrantChecked,
+    quadrantAllCorrect,
+    quadrantConfirmed,
     raci,
     accountableCount,
     accountableValid,
     raciTouched,
+    raciChecked,
+    raciConfirmed,
     decideNow,
     decideWhy,
     quadrantCardById,

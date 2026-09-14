@@ -116,15 +116,27 @@ export function useRoute2() {
       missing.push({ id: domId.reveal(s.option.id), label: `Reveal the real profile for ${who}` });
     }
   }
-  if (!pick) {
-    missing.push({ id: domId.pick, label: "Your recommendation — pick one option to commit to" });
+  // The commit step is gated behind all three reveals (see CommitStep) — while
+  // that holds, one combined entry stands in for every commit field, pointing
+  // at whichever option still needs revealing, rather than listing five commit
+  // fields the learner cannot even see yet.
+  if (!allRevealed) {
+    const next = optionStates.find((s) => !s.revealed);
+    missing.push({
+      id: next ? domId.reveal(next.option.id) : domId.commit,
+      label: `Reveal all three profiles to unlock your recommendation — ${revealedCount} of ${optionStates.length} done`,
+    });
+  } else {
+    if (!pick) {
+      missing.push({ id: domId.pick, label: "Your recommendation — pick one option to commit to" });
+    }
+    if (!rationale) missing.push({ id: domId.rationale, label: "Strategic rationale for your recommendation" });
+    if (!feasibility) missing.push({ id: domId.feasibility, label: "Feasibility argument for your recommendation" });
+    if (!followUp[0]) missing.push({ id: domId.followUp(1), label: "First follow-up decision this choice forces" });
+    if (!followUp[1]) missing.push({ id: domId.followUp(2), label: "Second follow-up decision this choice forces" });
+    if (!risks[0]) missing.push({ id: domId.risk(1), label: "First risk of the road not taken" });
+    if (!risks[1]) missing.push({ id: domId.risk(2), label: "Second risk of the road not taken" });
   }
-  if (!rationale) missing.push({ id: domId.rationale, label: "Strategic rationale for your recommendation" });
-  if (!feasibility) missing.push({ id: domId.feasibility, label: "Feasibility argument for your recommendation" });
-  if (!followUp[0]) missing.push({ id: domId.followUp(1), label: "First follow-up decision this choice forces" });
-  if (!followUp[1]) missing.push({ id: domId.followUp(2), label: "Second follow-up decision this choice forces" });
-  if (!risks[0]) missing.push({ id: domId.risk(1), label: "First risk of the road not taken" });
-  if (!risks[1]) missing.push({ id: domId.risk(2), label: "Second risk of the road not taken" });
 
   return {
     hydrated,

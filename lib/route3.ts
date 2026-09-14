@@ -31,6 +31,14 @@ export const R3 = {
   raci: (roleId: string, letter: RaciLetter) => `r3:raci:${roleId}:${letter}`,
   decideNow: "r3:decide",
   decideWhy: "r3:decide:why",
+  /**
+   * Single persisted flags, not per-card/per-role: once "Check placements" or
+   * "Check the model" is clicked the first time, every card's or letter's
+   * correct/valid state updates live from then on, same pattern as Route 1's
+   * category check.
+   */
+  quadrantChecked: "r3:quadrant-checked",
+  raciChecked: "r3:raci-checked",
 } as const;
 
 // ---------------------------------------------------------------------------
