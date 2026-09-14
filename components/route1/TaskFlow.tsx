@@ -5,6 +5,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { MaterialRefs } from "@/components/ui/MaterialRefs";
 import { R1, TASK1, materialRefs } from "@/lib/route1";
 import { SystemTrace } from "./SystemTrace";
+import { CheckAllPlacements } from "./CheckAllPlacements";
 import { HotspotWorkups } from "./HotspotWorkup";
 import { DiagnosisReport } from "./DiagnosisReport";
 import { ExportBar } from "./ExportBar";
@@ -34,6 +35,7 @@ export function TaskFlow() {
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-8">
           <SystemTrace />
+          <CheckAllPlacements />
           <HotspotWorkups />
         </div>
 
