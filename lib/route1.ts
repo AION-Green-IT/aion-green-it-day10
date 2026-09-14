@@ -401,6 +401,238 @@ export const CORRECTNESS_GRID: QuadrantCell[] = [
   },
 ];
 
+
+// ---------------------------------------------------------------------------
+// Section B's "Deep example" links. One running scenario across all four cards
+// — a parcel-tracking page at a logistics company — so the four are directly
+// comparable: same feature, same two questions, different answers.
+// ---------------------------------------------------------------------------
+export const QUADRANT_EXAMPLES: Record<string, GlossaryEntry> = {
+  "quadrant-ce": {
+    id: "quadrant-ce",
+    kicker: "Deep example · The goal",
+    question: "How does a team actually confirm a feature is Correct + Efficient?",
+    plain: [
+      "Take a parcel-tracking page: a customer enters a tracking number and sees the current status. Two separate teams sign off on it before it ships, answering two separate questions with two separate kinds of evidence.",
+    ],
+    visual: { key: "quadrant-example", title: "One feature, two questions, two answers", states: [] },
+    steps: {
+      heading: "Who does what, and what it produces",
+      items: [
+        {
+          who: "QA / the customer",
+          does: "Runs the automated test suite against known tracking numbers, then real customers use the page for a week.",
+          yields: "0 wrong statuses shown, 0 support tickets about incorrect tracking",
+        },
+        {
+          who: "The platform team",
+          does: "Reads the page's server logs and measures energy per load using their cloud provider's per-service metering.",
+          yields: "E = 0.006 kWh per 1,000 page loads",
+        },
+        {
+          who: "The sustainability lead",
+          does: "Looks up the carbon intensity of the electricity grid the servers run on that day, from the grid operator's published figure.",
+          yields: "I = 380 g CO₂e per kWh that day",
+        },
+        {
+          who: "IT asset management",
+          does: "Divides the servers' manufacturing footprint by their expected lifetime, then allocates a share to this page by its share of total traffic.",
+          yields: "M ≈ 0.0004 kWh-equivalent per 1,000 loads",
+        },
+        {
+          who: "The engineering lead",
+          does: "Combines E, I and M into one SCI number and compares it against last quarter's release of the same page.",
+          yields: "C ≈ 0.9 g CO₂e per page load — 12% lower than last quarter",
+        },
+      ],
+    },
+    verdict: {
+      heading: "Why this lands here",
+      text: "Correct, because the evidence is behavioural: real customers get the right status, every time, for a week straight. Efficient, because the evidence is a number that fell from a known baseline. Both questions were asked on purpose, by named owners, with a number attached — which is the actual definition of “the goal”, not a feeling that the page seems fine.",
+    },
+    news: {
+      heading: "In the world",
+      text: "A growing number of public-sector teams — UK government digital services among them — publish a carbon estimate for each page alongside their existing speed and accessibility checks, using tools such as the Website Carbon Calculator, and treat lowering that number as a real release criterion rather than a one-off audit.",
+      source: "UK Government Digital Service blogs on sustainable design practice",
+    },
+    seeAlso: { anchorId: "r1-material-correctness", label: "Back to the 2×2" },
+  },
+  "quadrant-ci": {
+    id: "quadrant-ci",
+    kicker: "Deep example · AppNexa today",
+    question: "How does a team discover it has been Correct + Inefficient all along?",
+    plain: [
+      "Same parcel-tracking page, eighteen months later. It has never returned a wrong status. It has also never been looked at from the efficiency side — until a rising cloud bill forces the question.",
+    ],
+    visual: { key: "quadrant-example", title: "Working fine, quietly getting more expensive", states: [] },
+    steps: {
+      heading: "Who does what, and what it produces",
+      items: [
+        {
+          who: "Finance",
+          does: "Notices the monthly cloud invoice for this service has grown 40% over two quarters, with no matching growth in customers.",
+          yields: "Cost per 1,000 page loads up from $0.80 to $1.12",
+        },
+        {
+          who: "The platform team",
+          does: "Instruments the page for the first time and finds it re-queries the full shipment history on every refresh, instead of just the latest status.",
+          yields: "18 database round-trips per page load, most of them unused",
+        },
+        {
+          who: "The sustainability lead",
+          does: "Runs the same E × I + M calculation as before, now that E is finally being measured.",
+          yields: "C ≈ 6.4 g CO₂e per page load — over 7× the efficient version",
+        },
+        {
+          who: "The engineering lead",
+          does: "Confirms the page's correctness has never been in question — the fix is entirely on the efficiency side, and can ship without changing what the customer sees.",
+          yields: "Fix scoped: same output, a fraction of the queries",
+        },
+      ],
+    },
+    verdict: {
+      heading: "Why this lands here",
+      text: "Correct, because nothing about what the customer sees was ever wrong — that is exactly why nobody looked. Inefficient, because the second question was never asked until a cloud bill forced it. This is the quiet quadrant: everything about it looks fine from the outside, which is precisely the mechanism that lets the cost climb for a year and a half unnoticed.",
+    },
+    news: {
+      heading: "In the world",
+      text: "Amazon's own Prime Video engineering team publicly described exactly this pattern in 2023: a video-monitoring service was functioning correctly, but its distributed, serverless architecture was far more expensive to run at scale than needed. Rebuilding it as a single monolithic process — same correct output — cut its infrastructure cost by roughly 90%.",
+      source: "Amazon Prime Video engineering blog, 2023",
+    },
+    seeAlso: { anchorId: "r1-material-correctness", label: "Back to the 2×2" },
+  },
+  "quadrant-ie": {
+    id: "quadrant-ie",
+    kicker: "Deep example · Not acceptable",
+    question: "What does Incorrect + Efficient actually look like in practice?",
+    plain: [
+      "Same page again. This time a well-meaning optimisation ships: cache each tracking number's result for six hours to cut database load. It works beautifully — for the wrong reason.",
+    ],
+    visual: { key: "quadrant-example", title: "Fast and cheap, and wrong", states: [] },
+    steps: {
+      heading: "Who does what, and what it produces",
+      items: [
+        {
+          who: "The platform team",
+          does: "Ships the six-hour cache. Database load drops immediately, and the efficiency dashboard turns green the same day.",
+          yields: "C down to 0.7 g CO₂e per page load — the best number yet",
+        },
+        {
+          who: "A customer",
+          does: "Refreshes the page an hour after their parcel is marked delivered, and still sees “out for delivery”.",
+          yields: "1 confused customer, 1 support ticket",
+        },
+        {
+          who: "Support",
+          does: "Escalates a pattern: every ticket this week involves a status that changed less than six hours ago.",
+          yields: "14 tickets in 5 days, all the same root cause",
+        },
+        {
+          who: "QA",
+          does: "Reproduces it in an hour: the cache serves the same answer regardless of what actually changed underneath it.",
+          yields: "Confirmed: correctness regression, not a support fluke",
+        },
+      ],
+    },
+    verdict: {
+      heading: "Why this lands here",
+      text: "Efficient, unambiguously — the number the team was chasing genuinely improved. Incorrect, because the page now tells customers something false for up to six hours at a time. The efficiency dashboard cannot see this failure; only the people checking the actual output can. That gap is exactly why efficiency is never allowed to stand in for correctness.",
+    },
+    news: {
+      heading: "In the world",
+      text: "This is common enough to have a name in operations literature: caching a result before confirming it still reflects reality is one of the most frequently cited causes of an outage or a wrong answer that looks, from a systems-health dashboard, like nothing went wrong at all.",
+      source: "Google — Site Reliability Engineering, “Postmortem Culture” (O'Reilly, 2016)",
+    },
+    seeAlso: { anchorId: "r1-material-correctness", label: "Back to the 2×2" },
+  },
+  "quadrant-ii": {
+    id: "quadrant-ii",
+    kicker: "Deep example · Worst case",
+    question: "How does a system end up Incorrect + Inefficient at the same time?",
+    plain: [
+      "The rarest quadrant, and the one that takes the longest to reach — because it usually means two separate failures landed on top of each other, unnoticed, at different times.",
+    ],
+    visual: { key: "quadrant-example", title: "Two failures, stacked", states: [] },
+    steps: {
+      heading: "Who does what, and what it produces",
+      items: [
+        {
+          who: "The platform team",
+          does: "Ships a fix for last quarter's cache bug — but forgets to remove the now-redundant full-history re-query underneath it.",
+          yields: "The correctness bug is gone, and the N+1 pattern is left in place",
+        },
+        {
+          who: "A customer",
+          does: "Hits a rare edge case: a parcel with two delivery attempts, which the un-reviewed fix handles by showing the older attempt.",
+          yields: "1 wrong status shown, in a case nobody tested",
+        },
+        {
+          who: "The sustainability lead",
+          does: "Runs the routine quarterly efficiency check and finds the query count never actually improved.",
+          yields: "C ≈ 6.1 g CO₂e per page load — still roughly 7× the efficient baseline",
+        },
+        {
+          who: "The engineering lead",
+          does: "Reviews both findings together and realises they were never connected: two different bugs, from two different quarters, sitting in the same file.",
+          yields: "Two tickets opened, one root-cause review scheduled",
+        },
+      ],
+    },
+    verdict: {
+      heading: "Why this lands here",
+      text: "Wrong, on a real edge case a test suite happened to miss. Wasteful, on a pattern nobody had gone back to check since the correctness fix shipped. Neither failure caused the other — they simply coexisted, because nobody was looking at both questions at once. That is why this quadrant is rare: it takes two separate lapses in the same place to reach it, not one.",
+    },
+    news: {
+      heading: "In the world",
+      text: "Software engineering research on defect clustering consistently finds that files changed most frequently, and reviewed least carefully after the first fix ships, accumulate a disproportionate share of a codebase's remaining bugs — the exact mechanism by which a correctness patch and a lingering inefficiency end up living in the same few lines.",
+      source: "Nagappan & Ball, “Use of Relative Code Churn Measures to Predict System Defect Density” (ICSE, 2005)",
+    },
+    seeAlso: { anchorId: "r1-material-correctness", label: "Back to the 2×2" },
+  },
+};
+
+// ---------------------------------------------------------------------------
+// The figures QuadrantExampleVisual draws for each Deep example above.
+// ---------------------------------------------------------------------------
+export type ExampleFigure = {
+  correct: boolean;
+  efficient: boolean;
+  correctEvidence: string;
+  number: string;
+  numberDetail: string;
+};
+
+export const EXAMPLE_FIGURES: Record<string, ExampleFigure> = {
+  "quadrant-ce": {
+    correct: true,
+    efficient: true,
+    correctEvidence: "A week of real customer use, 0 wrong statuses shown.",
+    number: "0.9 g",
+    numberDetail: "SCI per 1,000 page loads — 12% below last quarter.",
+  },
+  "quadrant-ci": {
+    correct: true,
+    efficient: false,
+    correctEvidence: "Never returned a wrong status in 18 months.",
+    number: "6.4 g",
+    numberDetail: "SCI per 1,000 page loads — over 7× the efficient version.",
+  },
+  "quadrant-ie": {
+    correct: false,
+    efficient: true,
+    correctEvidence: "Served a stale status for up to 6 hours after delivery.",
+    number: "0.7 g",
+    numberDetail: "SCI per 1,000 page loads — the best number the team ever saw.",
+  },
+  "quadrant-ii": {
+    correct: false,
+    efficient: false,
+    correctEvidence: "Wrong status on a rare two-attempt delivery edge case.",
+    number: "6.1 g",
+    numberDetail: "SCI per 1,000 page loads — the query pattern was never actually fixed.",
+  },
+};
+
 // ---------------------------------------------------------------------------
 // Section C — the SCI variables, as rendered by the formula visual.
 // ---------------------------------------------------------------------------

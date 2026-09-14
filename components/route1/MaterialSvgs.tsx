@@ -1,7 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { Icon } from "@/components/icons/LineIcons";
+import { ArrowRight, Icon } from "@/components/icons/LineIcons";
+import { GlossaryButton } from "@/components/ui/Glossary";
 import { CORRECTNESS_GRID, PRINCIPLES, SCI_VARIABLES } from "@/lib/route1";
 
 /**
@@ -17,6 +18,14 @@ const TONE_CLASS = {
   focus: "border-warn bg-warn/10",
   reject: "border-line bg-canvas",
   worst: "border-danger/40 bg-danger/5",
+} as const;
+
+/** The "Deep example" link reads in the card's own tone; grey would not look clickable. */
+const LINK_CLASS = {
+  goal: "text-accent hover:text-accentHi",
+  focus: "text-warn hover:text-ink",
+  reject: "text-ink hover:text-accent",
+  worst: "text-danger hover:text-ink",
 } as const;
 
 const VERDICT_CLASS = {
@@ -65,12 +74,22 @@ export function CorrectnessMatrix() {
 function Cell({ id }: { id: string }) {
   const cell = CORRECTNESS_GRID.find((c) => c.id === id)!;
   return (
-    <div className={clsx("rounded-2xl border p-4", TONE_CLASS[cell.tone])}>
+    <div className={clsx("flex flex-col rounded-2xl border p-4", TONE_CLASS[cell.tone])}>
       <p className="text-h3 text-ink">{cell.label}</p>
       <p className={clsx("mt-0.5 text-micro font-semibold uppercase tracking-wide", VERDICT_CLASS[cell.tone])}>
         {cell.verdict}
       </p>
-      <p className="mt-2 text-caption text-ash">{cell.detail}</p>
+      <p className="mt-2 flex-1 text-caption text-ash">{cell.detail}</p>
+      <GlossaryButton
+        id={`quadrant-${cell.id}`}
+        className={clsx(
+          "mt-3 inline-flex items-center gap-1.5 self-start text-caption font-semibold underline decoration-dotted decoration-2 underline-offset-4",
+          LINK_CLASS[cell.tone],
+        )}
+      >
+        Deep example: how the number is found
+        <ArrowRight className="h-4 w-4" />
+      </GlossaryButton>
     </div>
   );
 }

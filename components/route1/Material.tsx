@@ -4,13 +4,14 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { MaterialBlock } from "@/components/ui/MaterialBlock";
 import { Reveal } from "@/components/ui/Reveal";
 import { ArrowRight } from "@/components/icons/LineIcons";
-import { ENERGY_CHAIN, FURTHER_READING, GLOSSARY, MATERIAL, materialAnchorId } from "@/lib/route1";
+import { ENERGY_CHAIN, FURTHER_READING, GLOSSARY, MATERIAL, QUADRANT_EXAMPLES, materialAnchorId } from "@/lib/route1";
 import type { GlossaryEntry } from "@/lib/glossary";
 import { GlossaryProvider } from "@/components/ui/Glossary";
 import { FlowDiagram } from "@/components/ui/FlowDiagram";
 import { SixCategoryGrid } from "./CategoryGrid";
 import { CorrectnessMatrix, SciFormulaBreakdown, ThreePrinciplesTriad } from "./MaterialSvgs";
 import { ApiCallVisual, NPlusOneVisual } from "./GlossaryVisuals";
+import { QuadrantExampleVisual } from "./QuadrantExampleVisual";
 
 /**
  * Route 1 material, Sections A–F. Each block renders through the shared
@@ -22,7 +23,7 @@ export function Material() {
   const [a, b, c, d, e, f] = MATERIAL;
 
   return (
-    <GlossaryProvider entries={GLOSSARY} renderVisual={renderGlossaryVisual}>
+    <GlossaryProvider entries={{ ...GLOSSARY, ...QUADRANT_EXAMPLES }} renderVisual={renderGlossaryVisual}>
       <section className="space-y-14">
         <SectionHeading
           kicker="Material · about 60 minutes"
@@ -72,6 +73,8 @@ function renderGlossaryVisual(entry: GlossaryEntry) {
       return <ApiCallVisual entry={entry} />;
     case "n-plus-one":
       return <NPlusOneVisual entry={entry} />;
+    case "quadrant-example":
+      return <QuadrantExampleVisual entry={entry} />;
     default:
       return null;
   }

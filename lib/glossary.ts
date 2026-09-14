@@ -15,18 +15,27 @@ export type GlossaryVisualState = {
   caption: string;
 };
 
+/** One hand-off in a worked example: who does what, and the number it produces. */
+export type GlossaryStep = { who: string; does: string; yields?: string };
+
 export type GlossaryEntry = {
   id: string;
   kicker: string;
   question: string;
-  /** The plain definition, one short paragraph per string. */
+  /** The plain definition, or a worked example's scenario — one short paragraph per string. */
   plain: string[];
   /** A follow-on idea the term depends on, e.g. "over-fetching" after "API call". */
   secondary?: { heading: string; text: string };
-  analogy: { label: string; text: string };
-  /** `key` picks the diagram; `states` are the positions of its wasteful/efficient toggle. */
+  analogy?: { label: string; text: string };
+  /** `key` picks the diagram; `states` are the positions of its toggle, if it has one. */
   visual: { key: string; title: string; states: GlossaryVisualState[] };
-  whyEnergy: { heading: string; text: string };
+  /** Worked examples: the chain of hand-offs that produces the number. */
+  steps?: { heading: string; items: GlossaryStep[] };
+  /** Worked examples: what the evidence adds up to. */
+  verdict?: { heading: string; text: string };
+  /** A documented real-world case, with its source. */
+  news?: { heading: string; text: string; source: string };
+  whyEnergy?: { heading: string; text: string };
   /** Where the material covers this in depth — closes the explainer and scrolls there. */
   seeAlso?: { anchorId: string; label: string };
 };

@@ -169,20 +169,63 @@ function GlossaryBody({
           </div>
         )}
 
-        <div className="flex gap-3 rounded-xl border border-accent/30 bg-accentSoft p-4">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-          <div>
-            <p className="text-micro font-semibold uppercase tracking-wide text-accent">{entry.analogy.label}</p>
-            <p className="mt-1 text-caption text-ink">{entry.analogy.text}</p>
+        {entry.analogy && (
+          <div className="flex gap-3 rounded-xl border border-accent/30 bg-accentSoft p-4">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+            <div>
+              <p className="text-micro font-semibold uppercase tracking-wide text-accent">{entry.analogy.label}</p>
+              <p className="mt-1 text-caption text-ink">{entry.analogy.text}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {visual}
 
-        <div className="rounded-xl border border-line bg-canvas p-4">
-          <p className="text-micro font-semibold uppercase tracking-wide text-ash">{entry.whyEnergy.heading}</p>
-          <p className="mt-1 text-caption text-ink">{entry.whyEnergy.text}</p>
-        </div>
+        {entry.steps && (
+          <div>
+            <p className="text-h3 text-ink">{entry.steps.heading}</p>
+            <ol className="mt-3 space-y-2">
+              {entry.steps.items.map((step, i) => (
+                <li key={i} className="flex gap-3 rounded-xl border border-line bg-paper p-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink text-micro font-bold tabular-nums text-paper">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-micro font-semibold uppercase tracking-wide text-accent">{step.who}</p>
+                    <p className="mt-0.5 text-caption text-ink">{step.does}</p>
+                    {step.yields && (
+                      <p className="mt-1.5 inline-block rounded-lg bg-mist px-2 py-0.5 text-caption font-semibold tabular-nums text-ink">
+                        {step.yields}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {entry.verdict && (
+          <div className="rounded-xl border-2 border-ink bg-paper p-4">
+            <p className="text-micro font-semibold uppercase tracking-wide text-ink">{entry.verdict.heading}</p>
+            <p className="mt-1 text-caption text-ink">{entry.verdict.text}</p>
+          </div>
+        )}
+
+        {entry.news && (
+          <div className="rounded-xl border border-line border-l-4 border-l-ink bg-paper p-4">
+            <p className="text-micro font-semibold uppercase tracking-wide text-ash">{entry.news.heading}</p>
+            <p className="mt-1 text-caption text-ink">{entry.news.text}</p>
+            <p className="mt-2 text-micro italic text-ash">Source: {entry.news.source}</p>
+          </div>
+        )}
+
+        {entry.whyEnergy && (
+          <div className="rounded-xl border border-line bg-canvas p-4">
+            <p className="text-micro font-semibold uppercase tracking-wide text-ash">{entry.whyEnergy.heading}</p>
+            <p className="mt-1 text-caption text-ink">{entry.whyEnergy.text}</p>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
           {entry.seeAlso ? (
@@ -220,6 +263,25 @@ export function GlossaryTerm({ id, label }: { id: string; label: string }) {
       {label}
       <Help className="ml-0.5 inline-block h-3.5 w-3.5 -translate-y-px align-middle" />
       <span className="sr-only"> — open a plain-language explanation</span>
+    </button>
+  );
+}
+
+/** Any other control that opens an explainer, e.g. a "Deep example" link on a card. */
+export function GlossaryButton({
+  id,
+  className,
+  children,
+}: {
+  id: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  const ctx = useContext(GlossaryContext);
+  if (!ctx?.entries[id]) return null;
+  return (
+    <button type="button" aria-haspopup="dialog" onClick={() => ctx.open(id)} className={className}>
+      {children}
     </button>
   );
 }
