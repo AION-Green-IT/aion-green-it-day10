@@ -157,6 +157,17 @@ Route 2 reuses the same `FlowDiagram` for its Green Software Patterns lifecycle 
   its own instance, so an undo on Route 3's quadrant map can never restore a snapshot from
   Route 1's category bins after a client-side navigation.
 
+### Plain-language explainers
+
+Jargon inside material prose can be marked inline as `[[id|visible label]]` (parser in
+`lib/glossary.ts`). `MaterialBlock` renders the label as a link-styled button that opens a
+native `<dialog>` explainer (`components/ui/Glossary.tsx`): a plain definition, an everyday
+analogy, an SVG that toggles between the wasteful and the efficient version, why it costs
+energy, and a jump to where the material covers it in depth. Route 1 uses it for
+"over-fetching API call" and "N+1 query" in Section A (`GLOSSARY` in `lib/route1.ts`, diagrams
+in `components/route1/GlossaryVisuals.tsx`). Where no glossary is provided, a marker renders as
+plain text, so brackets never leak onto the page.
+
 ## Standards all three routes implement
 
 Interaction standards come from [`../CLAUDE.md`](../CLAUDE.md); content standards from

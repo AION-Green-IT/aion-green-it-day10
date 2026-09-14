@@ -1,6 +1,7 @@
 import { Icon } from "@/components/icons/LineIcons";
 import { Reveal } from "@/components/ui/Reveal";
 import { IndustryCallout } from "./IndustryCallout";
+import { RichText } from "./Glossary";
 import type { IconKey } from "@/lib/routes";
 
 export type MaterialBlockContent = {
@@ -51,15 +52,15 @@ export function MaterialBlock({
       <div className="max-w-prose space-y-3 text-body text-ash">
         <p>
           <span className="font-semibold text-ink">Definition. </span>
-          {block.definition}
+          <RichText text={block.definition} />
         </p>
         <p>
           <span className="font-semibold text-ink">Insight. </span>
-          {block.insight}
+          <RichText text={block.insight} />
         </p>
         <p>
           <span className="font-semibold text-ink">Practical takeaway. </span>
-          {block.takeaway}
+          <RichText text={block.takeaway} />
         </p>
       </div>
 
@@ -74,7 +75,9 @@ export function MaterialBlock({
             {block.reasoning.map((rule, i) => (
               <li key={i} className="flex gap-2 text-caption text-ink">
                 <span className="mt-[3px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                <span>{rule}</span>
+                <span>
+                  <RichText text={rule} />
+                </span>
               </li>
             ))}
           </ul>

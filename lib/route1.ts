@@ -10,6 +10,7 @@
 import type { IconKey } from "@/lib/routes";
 import type { AnswerKeyBlock } from "@/lib/answerKey";
 import type { FlowGraph, FlowPin } from "@/lib/flowDiagram";
+import type { GlossaryEntry } from "@/lib/glossary";
 
 export const LEARNER_NAME_KEY = "learner:name";
 
@@ -107,7 +108,7 @@ export const MATERIAL: MaterialSection[] = [
     insight:
       "The scale is now large enough that it registers at national-grid level. According to the International Energy Agency's Energy and AI report, data centres accounted for around 1.5% of global electricity consumption in 2024 — roughly 415 terawatt-hours. More importantly than the level is the slope: that consumption has been growing at approximately 12% per year, several times faster than overall electricity demand. A share that grows faster than the system it sits inside does not stay a rounding error for long. And unlike most industrial loads, a large fraction of this one is discretionary — it is work that software asked for and did not need.",
     takeaway:
-      "The reason this waste persists is not incompetence, it is a split incentive. The engineer who writes an over-fetching API call or an N+1 query never sees an electricity bill. The consequence surfaces three or four steps removed: as a compute-hours line on a cloud invoice, owned by a different team, in a different budget, aggregated across hundreds of services, with no mechanism to trace the number back to the line of code that caused it. Nobody is hiding the cost — the organisation simply has no wiring that connects cause to effect. That disconnect is precisely why energy-efficient software became a named engineering discipline with its own measurement standard, which the next sections introduce.",
+      "The reason this waste persists is not incompetence, it is a split incentive. The engineer who writes an [[api-call|over-fetching API call]] or an [[n-plus-one|N+1 query]] never sees an electricity bill. The consequence surfaces three or four steps removed: as a compute-hours line on a cloud invoice, owned by a different team, in a different budget, aggregated across hundreds of services, with no mechanism to trace the number back to the line of code that caused it. Nobody is hiding the cost — the organisation simply has no wiring that connects cause to effect. That disconnect is precisely why energy-efficient software became a named engineering discipline with its own measurement standard, which the next sections introduce.",
     reasoning: [
       "Treat every behaviour you observe as a question about physical work: how many instructions, how many stored bytes, how many transmitted bytes does this cause? A behaviour that increases any of the three costs energy, whatever it looks like in the code.",
       "When a cost has no visible owner, expect it to grow. A finding that nobody currently measures is a stronger candidate for a structural fix than one that already shows up on somebody's dashboard.",
@@ -259,6 +260,90 @@ export const MATERIAL: MaterialSection[] = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Plain-language explainers for jargon in the material prose. A term is marked
+// inline as [[id|label]] (see lib/glossary.ts); the diagram each one draws is
+// chosen in components/route1/Material.tsx.
+// ---------------------------------------------------------------------------
+export const GLOSSARY: Record<string, GlossaryEntry> = {
+  "api-call": {
+    id: "api-call",
+    kicker: "Plain-language explainer",
+    question: "What is an API call — and what makes one “over-fetching”?",
+    plain: [
+      "API stands for Application Programming Interface: an agreed way for one piece of software to ask another piece of software for something. An API call is one of those requests, together with the answer that comes back.",
+      "When someone opens a dashboard, the app in their browser doesn't have the data yet. It sends an API call to the company's server — in effect, “send me the details for customer 42” — and the server looks the data up and sends it back. Nearly every screen in a modern application is assembled this way, often from dozens of API calls.",
+    ],
+    secondary: {
+      heading: "So what is over-fetching?",
+      text: "Over-fetching is when the answer contains far more than the screen actually uses. The screen needs three fields, but the API returns the entire customer record — because that is what the endpoint was built to send, and nobody ever narrowed it down.",
+    },
+    analogy: {
+      label: "Think of it like a restaurant",
+      text: "The app is the guest, the server is the kitchen, and an API call is the order the waiter carries in plus the plate that comes back out. Over-fetching is a kitchen that cooks the whole menu no matter what you ordered. The waiter carries every dish to your table, you eat the soup you asked for — and everything else was cooked, plated and carried for nothing.",
+    },
+    visual: {
+      key: "api-call",
+      title: "One dashboard request, two ways",
+      states: [
+        {
+          id: "over",
+          label: "Over-fetching",
+          caption:
+            "The dashboard shows three things: a name, a status and an owner. But the server sends back the whole customer record — 24 fields. All 24 are looked up, packaged, sent across the network and unpacked by the app, and 21 of them land in the unused pile without ever appearing on screen. Then it happens again for every customer on the page, every time anyone opens it.",
+        },
+        {
+          id: "right",
+          label: "Right-sized",
+          caption:
+            "Same screen, same three fields, same experience for the person using it. The only difference is the answer: it carries just the 3 fields the screen displays instead of 24. Nothing visible changed — the work behind the screen simply got smaller.",
+        },
+      ],
+    },
+    whyEnergy: {
+      heading: "Why this costs energy",
+      text: "Every field in an answer is real work: the server reads it from storage, converts it into data that can travel, and pushes it across the network — where every switch and router along the path draws power — before the app receives and unpacks it. Over-fetching pays that full price for data nobody sees, on every call, for every user. Nothing breaks and nothing looks wrong, which is exactly why it goes unnoticed.",
+    },
+    seeAlso: { anchorId: "r1-category-architecture", label: "Read more in Section E" },
+  },
+  "n-plus-one": {
+    id: "n-plus-one",
+    kicker: "Plain-language explainer",
+    question: "What is an N+1 query?",
+    plain: [
+      "Applications keep their data in a database, and they get it out by asking questions called queries — for example, “give me all the open orders for this customer.” Every query is a round-trip: the application sends the question, the database works out the answer, and the answer travels back.",
+      "An N+1 query is a wasteful way of asking those questions. The application first runs one query to fetch a list. Then, instead of asking for the details of everything in that list at once, it goes back to the database separately for every single item — N more trips, where N is the number of items. One query plus N queries: that is where the name comes from.",
+    ],
+    analogy: {
+      label: "Think of it like a supermarket run",
+      text: "You need 50 things from the supermarket. The N+1 way: one trip to see what's on the shelves, then a separate trip there and back for each of the 50 items. The batched way: one trip, one trolley, everything at once. Your kitchen ends up with exactly the same shopping — after 51 trips instead of one.",
+    },
+    visual: {
+      key: "n-plus-one",
+      title: "Loading one page that shows a list",
+      states: [
+        {
+          id: "nplus1",
+          label: "N+1 — a trip per item",
+          caption:
+            "First the application asks the database for the list — that's trip 1. Then, for each of the {n} items in the list, it sends another separate query for that item's details: one more trip each. That's {trips} round-trips to load a single page, and the person looking at the screen sees none of them.",
+        },
+        {
+          id: "batched",
+          label: "Batched — one trip",
+          caption:
+            "The application asks for the list and every item's details together, in one combined query — usually a join, or a small fixed number of queries using a batch loader. With {n} items it is still a single round-trip (or a small fixed handful), and that number doesn't grow whether the list holds 10 items or 10,000.",
+        },
+      ],
+    },
+    whyEnergy: {
+      heading: "Why this costs energy",
+      text: "Every round-trip carries a fixed overhead that has nothing to do with how much data comes back: the application builds and sends the query, the network carries it both ways, and the database has to receive it, work out how to answer it, run it and reply. Batching pays that overhead once. N+1 pays it once per item — so the page gets slower and more expensive exactly as the business grows and the lists get longer, with no error anywhere to warn anyone.",
+    },
+    seeAlso: { anchorId: "r1-category-dataProcessing", label: "Read more in Section E" },
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Section B — the correctness × efficiency 2×2.
