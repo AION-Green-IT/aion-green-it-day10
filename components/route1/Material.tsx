@@ -12,6 +12,7 @@ import { SixCategoryGrid } from "./CategoryGrid";
 import { CorrectnessMatrix, SciFormulaBreakdown, ThreePrinciplesTriad } from "./MaterialSvgs";
 import { ApiCallVisual, NPlusOneVisual } from "./GlossaryVisuals";
 import { QuadrantExampleVisual } from "./QuadrantExampleVisual";
+import { SciCalculator } from "./SciCalculator";
 
 /**
  * Route 1 material, Sections A–F. Each block renders through the shared
@@ -40,7 +41,10 @@ export function Material() {
         </MaterialBlock>
 
         <MaterialBlock block={c} anchorId={materialAnchorId("sci")}>
-          <SciFormulaBreakdown />
+          <div className="space-y-5">
+            <SciFormulaBreakdown />
+            <SciCalculator />
+          </div>
         </MaterialBlock>
 
         <MaterialBlock block={d} anchorId={materialAnchorId("principles")}>

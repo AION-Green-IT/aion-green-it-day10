@@ -664,6 +664,98 @@ export const SCI_VARIABLES = [
 ] as const;
 
 // ---------------------------------------------------------------------------
+// Section C's "try it yourself" calculator — a worked scenario with real
+// numbers, entered by hand, so the formula stops being four letters and
+// becomes something the learner has actually computed once.
+// ---------------------------------------------------------------------------
+export type SciCalcVarKey = "E" | "I" | "M" | "R";
+
+export type SciCalcVariable = {
+  key: SciCalcVarKey;
+  label: string;
+  unit: string;
+  /** The value this scenario's story actually supports. */
+  value: number;
+  placeholder: string;
+  /** Why this particular figure from the story is this variable, not one of the other three. */
+  reason: string;
+};
+
+export type SciCalculatorContent = {
+  heading: string;
+  intro: string;
+  /** The scenario, one paragraph per string — each one carries exactly one variable's figure. */
+  story: string[];
+  instruction: string;
+  variables: SciCalcVariable[];
+  resultLabel: string;
+  resultUnit: string;
+  /** The same scenario a month later, after a fix — makes the "rate, not total" point concrete. */
+  followUp: { intro: string; newE: number; result: string };
+};
+
+export const SCI_CALCULATOR: SciCalculatorContent = {
+  heading: "Try it: AppNexa's own SCI number",
+  intro:
+    "AppNexa's platform team wants a real measurement, not a guess, for the order-confirmation service. Four people handed them four numbers. Read where each one came from, then work the formula yourself.",
+  story: [
+    "AppNexa's cloud provider meters usage per service. For the order-confirmation service, last month's billing dashboard showed 40 kilowatt-hours drawn — a direct meter reading, not an estimate.",
+    "That service runs in a data-centre region whose grid operator publishes a monthly average carbon intensity. Last month it was 350 grams of CO₂-equivalent per kilowatt-hour.",
+    "The three physical servers dedicated to this service together cost about 96,000 grams of CO₂e to manufacture. IT asset management amortises that over the servers' expected four-year life and allocates it by usage share — one month's slice for this service comes to 2,000 grams of CO₂e.",
+    "Application logs show the service actually sent 100,000 confirmation messages in that same 30-day window — the functional unit the team is measuring a rate per.",
+  ],
+  instruction:
+    "Match each paragraph above to the box it belongs in below, type the number, and watch C calculate itself. Stuck on which figure goes where? Reveal shows the numbers and explains the match.",
+  variables: [
+    {
+      key: "E",
+      label: "E — Energy",
+      unit: "kWh",
+      value: 40,
+      placeholder: "e.g. 40",
+      reason:
+        "The only figure described as an amount of electricity drawn — a direct meter reading. That is exactly what E measures: energy the software actually consumed.",
+    },
+    {
+      key: "I",
+      label: "I — Carbon intensity",
+      unit: "g CO₂e / kWh",
+      value: 350,
+      placeholder: "e.g. 350",
+      reason:
+        "The only figure expressed as carbon per unit of electricity, published by the grid operator. That is I — how dirty the electricity your energy figure drew actually was.",
+    },
+    {
+      key: "M",
+      label: "M — Embodied emissions",
+      unit: "g CO₂e",
+      value: 2000,
+      placeholder: "e.g. 2000",
+      reason:
+        "The one figure that has nothing to do with this month's usage — it's a manufacturing cost spread over years and allocated to this reporting period. That allocation is exactly what makes it M rather than E.",
+    },
+    {
+      key: "R",
+      label: "R — Functional unit",
+      unit: "confirmations sent",
+      value: 100000,
+      placeholder: "e.g. 100000",
+      reason:
+        "The count of times the software actually did its job in the same window. That is R — the \"per what\" the rate is measured against.",
+    },
+  ],
+  resultLabel: "C — the SCI rate",
+  resultUnit: "g CO₂e per confirmation sent",
+  followUp: {
+    intro:
+      "One month later, the team ships a fix that cuts energy use to 22 kWh. Nothing else about the service changes — same grid, same servers, same volume.",
+    newE: 22,
+    result:
+      "C now works out to about 0.097 — roughly 40% lower, expressed as a number instead of a guess. That is the whole point of a rate: it can say the deploy helped before a full year of billing data ever arrives.",
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Section D — the three principles triad.
 // ---------------------------------------------------------------------------
 export const PRINCIPLES = [
